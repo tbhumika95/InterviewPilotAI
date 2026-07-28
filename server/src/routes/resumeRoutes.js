@@ -20,7 +20,7 @@ router.post(
             const extractedText = await extractTextFromPDF(req.file.path);
 
             const analysis = await analyzeResume(extractedText);
-            await Resume.create({
+            const resume = await Resume.create({
                 user: req.user,
 
                 summary: analysis.summary,
@@ -38,10 +38,12 @@ router.post(
 
             res.status(200).json({
                 success: true,
+                resumeId: resume._id,
                 analysis,
             });
 
-        } catch (error) {
+        } 
+        catch (error) {
 
             res.status(500).json({
                 success: false,
