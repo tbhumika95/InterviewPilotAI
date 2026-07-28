@@ -18,33 +18,29 @@ const startInterview = async ({
         throw new Error("Resume not found.");
     }
 
-    // First Interview Stage
-    const stage = "HR";
-
-    // Generate AI Prompt
+    // First interview prompt
     const prompt = interviewPrompt({
         candidate,
         duration,
         difficulty,
         focus,
-        stage,
         history: [],
     });
 
-    // Generate First Question
+    // Generate first question
     const firstQuestion = await generateQuestion(prompt);
 
     // Create Interview Session
     const session = await InterviewSession.create({
-        candidate: resumeId,
+        user: candidate.user,
+        resume: candidate._id,
         duration,
         difficulty,
         focus,
-        currentStage: stage,
         history: [
             {
-                question: firstQuestion,
-                answer: "",
+                role: "assistant",
+                content: firstQuestion,
             },
         ],
     });

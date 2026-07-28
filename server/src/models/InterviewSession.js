@@ -2,14 +2,26 @@ const mongoose = require("mongoose");
 
 const interviewSessionSchema = new mongoose.Schema(
   {
-    candidate: {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    resume: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Resume",
       required: true,
     },
 
+    title: {
+      type: String,
+      default: "Untitled Interview",
+    },
+
     duration: {
       type: Number,
+      enum: [10, 20, 30],
       required: true,
     },
 
@@ -33,20 +45,29 @@ const interviewSessionSchema = new mongoose.Schema(
       required: true,
     },
 
-    currentStage: {
+    status: {
       type: String,
-      default: "HR",
-    },
-
-    currentQuestion: {
-      type: String,
-      default: "",
+      enum: ["ongoing", "completed"],
+      default: "ongoing",
     },
 
     history: [
       {
-        question: String,
-        answer: String,
+        role: {
+          type: String,
+          enum: ["assistant", "user"],
+          required: true,
+        },
+
+        content: {
+          type: String,
+          required: true,
+        },
+
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
 
@@ -62,13 +83,12 @@ const interviewSessionSchema = new mongoose.Schema(
 
     report: {
       type: Object,
-      default: {},
+      default: null,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-module.exports = mongoose.model(
-  "InterviewSession",
-  interviewSessionSchema
-);
+module.exports = mongoose.model("InterviewSession", interviewSessionSchema);
