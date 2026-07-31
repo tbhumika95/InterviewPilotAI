@@ -9,50 +9,57 @@ const { extractTextFromPDF } = require("../services/pdfService");
 const { analyzeResume } = require("../services/groqService");
 
 router.post(
-    "/upload",
-    protect,
-    upload.single("resume"),
-    async (req, res) => {
+  "/upload",
+  protect,
+  upload.single("resume"),
+  async (req, res) => {
+    try {
+      const extractedText = await extractTextFromPDF(req.file.path);
 
-        try {
+      const analysis = await analyzeResume(extractedText);
 
-            // Extract text from uploaded PDF
-            const extractedText = await extractTextFromPDF(req.file.path);
+      // Optional: remove previous resume
+      await Resume.deleteMany({ user: req.user.id });
 
-            const analysis = await analyzeResume(extractedText);
-            const resume = await Resume.create({
-                user: req.user,
+      const resume = await Resume.create({
+        user: req.user.id,
+        summary: analysis.summary,
+        skills: analysis.skills,
+        technologies: analysis.technologies,
+        projects: analysis.projects,
+        strengths: analysis.strengths,
+        weaknesses: analysis.weaknesses,
+      });
 
-                summary: analysis.summary,
-
-                skills: analysis.skills,
-
-                technologies: analysis.technologies,
-
-                projects: analysis.projects,
-
-                strengths: analysis.strengths,
-
-                weaknesses: analysis.weaknesses,
-            });
-
-            res.status(200).json({
-                success: true,
-                resumeId: resume._id,
-                analysis,
-            });
-
-        } 
-        catch (error) {
-
-            res.status(500).json({
-                success: false,
-                message: error.message,
-            });
-
-        }
-
+      res.status(200).json({
+        success: true,
+        resumeId: resume._id,
+        analysis,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
+  }
 );
+
+// GET Logged-in user's resume
+router.get("/me", protect, async (req, res) => {
+  try {
+    const resume = await Resume.findOne({ user: req.user.id });
+
+    res.status(200).json({
+      success: true,
+      resume,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 module.exports = router;
