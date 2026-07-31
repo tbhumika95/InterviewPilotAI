@@ -2,7 +2,12 @@ const Resume = require("../models/Resume");
 const InterviewSession = require("../models/InterviewSession");
 
 const interviewPrompt = require("../prompts/interviewPrompt");
-const { generateQuestion } = require("./groqService");
+const reportPrompt = require("../prompts/reportPrompt");
+
+const {
+    generateInterviewResponse,
+    generateReport,
+} = require("./groqService");
 
 const startInterview = async ({
     resumeId,
@@ -11,32 +16,21 @@ const startInterview = async ({
     focus,
 }) => {
 
-    // Find Candidate Resume
     const candidate = await Resume.findById(resumeId);
 
     if (!candidate) {
         throw new Error("Resume not found.");
     }
 
-    // First interview prompt
-    const prompt = interviewPrompt({
-        candidate,
-        duration,
-        difficulty,
-        focus,
-        history: [],
-    });
+    const firstQuestion = "Tell me about yourself.";
 
-    // Generate first question
-    const firstQuestion = await generateQuestion(prompt);
-
-    // Create Interview Session
     const session = await InterviewSession.create({
         user: candidate.user,
         resume: candidate._id,
         duration,
         difficulty,
         focus,
+        status: "ongoing",
         history: [
             {
                 role: "assistant",
@@ -47,10 +41,116 @@ const startInterview = async ({
 
     return {
         sessionId: session._id,
+        completed: false,
         question: firstQuestion,
     };
 };
 
+const nextQuestion = async ({
+    sessionId,
+    answer,
+}) => {
+
+    const session = await InterviewSession
+        .findById(sessionId)
+        .populate("resume");
+
+    if (!session) {
+        throw new Error("Interview session not found.");
+    }
+
+    if (session.status === "completed") {
+        return {
+            completed: true,
+            report: session.report,
+        };
+    }
+
+    // Save candidate answer
+    session.history.push({
+        role: "user",
+        content: answer,
+    });
+
+    await session.save();
+
+    // Build prompt
+    const prompt = interviewPrompt({
+        candidate: session.resume,
+        duration: session.duration,
+        difficulty: session.difficulty,
+        focus: session.focus,
+        history: session.history,
+    });
+
+    // Ask AI for next question
+    const aiResponse = await generateInterviewResponse(prompt);
+
+    // Interview finished
+    if (aiResponse.interviewComplete) {
+
+        const report = await generateReport(
+            reportPrompt({
+                candidate: session.resume,
+                history: session.history,
+            })
+        );
+
+        session.report = report;
+        session.status = "completed";
+
+        // Only keep this line if your schema still has `completed`
+        if ("completed" in session) {
+            session.completed = true;
+        }
+
+        await session.save();
+
+        return {
+            completed: true,
+            report,
+        };
+    }
+
+    // Save AI question
+    session.history.push({
+        role: "assistant",
+        content: aiResponse.question,
+    });
+
+    await session.save();
+
+    return {
+        completed: false,
+        question: aiResponse.question,
+    };
+};
+
+const getReport = async (sessionId) => {
+
+    const session = await InterviewSession.findById(sessionId);
+
+    if (!session) {
+        throw new Error("Interview session not found.");
+    }
+
+    return session.report;
+};
+
+const getHistory = async (userId) => {
+
+    return await InterviewSession.find({
+        user: userId,
+    })
+        .select("title difficulty focus status createdAt")
+        .sort({
+            createdAt: -1,
+        });
+};
+
 module.exports = {
     startInterview,
+    nextQuestion,
+    getReport,
+    getHistory,
 };

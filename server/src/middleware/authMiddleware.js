@@ -5,7 +5,6 @@ const protect = async (req, res, next) => {
 
         let token;
 
-        // Check if token exists in Authorization header
         if (
             req.headers.authorization &&
             req.headers.authorization.startsWith("Bearer")
@@ -13,19 +12,18 @@ const protect = async (req, res, next) => {
             token = req.headers.authorization.split(" ")[1];
         }
 
-        // If no token
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: "Not Authorized, No Token",
+                message: "Not Authorized",
             });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Save user id inside request
-        req.user = decoded.id;
+        req.user = {
+            id: decoded.id,
+        };
 
         next();
 

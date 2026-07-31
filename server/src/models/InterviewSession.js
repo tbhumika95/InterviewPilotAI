@@ -76,11 +76,6 @@ const interviewSessionSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-    completed: {
-      type: Boolean,
-      default: false,
-    },
-
     report: {
       type: Object,
       default: null,
