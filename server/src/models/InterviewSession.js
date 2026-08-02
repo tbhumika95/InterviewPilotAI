@@ -19,10 +19,11 @@ const interviewSessionSchema = new mongoose.Schema(
       default: "Untitled Interview",
     },
 
-    duration: {
-      type: Number,
-      enum: [10, 20, 30],
-      required: true,
+    duration:{
+      type:Number,
+      required:true,
+      min:5,
+      max:60
     },
 
     difficulty: {

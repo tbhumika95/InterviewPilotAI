@@ -152,9 +152,24 @@ const getHistory = async (userId) => {
     });
 };
 
+const getInterviewDetails = async (sessionId) => {
+
+    const session = await InterviewSession
+        .findById(sessionId)
+        .populate("resume", "summary skills technologies");
+
+    if (!session) {
+        throw new Error("Interview session not found.");
+    }
+
+    return session;
+};
+
+
 module.exports = {
-  startInterview,
-  nextQuestion,
-  getReport,
-  getHistory,
+    startInterview,
+    nextQuestion,
+    getReport,
+    getHistory,
+    getInterviewDetails,
 };

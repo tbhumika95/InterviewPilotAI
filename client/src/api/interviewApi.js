@@ -19,3 +19,8 @@ export const getInterviewReport = async (sessionId) => {
   const response = await api.get(`/interview/report/${sessionId}`);
   return response.data;
 };
+
+export const getInterviewDetails = async (sessionId) => {
+  const response = await api.get(`/interview/details/${sessionId}`);
+  return response.data;
+};

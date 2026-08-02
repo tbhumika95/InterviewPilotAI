@@ -74,10 +74,10 @@ const History = () => {
 
                 {item.status === "completed" && (
                   <Link
-                    to={`/report/${item._id}`}
+                    to={`/interview-details/${item._id}`}
                     className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg"
                   >
-                    View Report
+                    View Details
                   </Link>
                 )}
               </div>

@@ -1,22 +1,18 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { nextQuestion } from "../api/interviewApi";
 
 const Interview = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { sessionId } = useParams();
 
   const [question, setQuestion] = useState(
     location.state?.question || "Loading..."
   );
 
   const [answer, setAnswer] = useState("");
-
   const [loading, setLoading] = useState(false);
-
-  import { useParams } from "react-router-dom";
-
-  const { sessionId } = useParams();
 
   const handleNext = async () => {
     if (!answer.trim()) {
@@ -33,13 +29,12 @@ const Interview = () => {
       });
 
       if (res.data.completed) {
-        navigate(`/report/${sessionId}`);
+        navigate(`/interview-details/${sessionId}`);
         return;
       }
 
       setQuestion(res.data.question);
       setAnswer("");
-
     } catch (error) {
       alert(
         error.response?.data?.message ||
@@ -52,7 +47,6 @@ const Interview = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex justify-center items-center px-6">
-
       <div className="w-full max-w-4xl bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
 
         <h1 className="text-3xl text-white font-bold mb-8">
@@ -80,7 +74,6 @@ const Interview = () => {
         </button>
 
       </div>
-
     </div>
   );
 };

@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import UploadResume from "./pages/UploadResume";
 import InterviewSetup from "./pages/InterviewSetup";
 import Interview from "./pages/Interview";
-import Report from "./pages/Report";
+import InterviewDetails from "./pages/InterviewDetails";
 import History from "./pages/History";
 
 function NotFound() {
@@ -34,8 +34,8 @@ function App() {
 
       <Route path="/interview/:sessionId" element={<Interview />} />
 
-      <Route path="/report/:sessionId" element={<Report />} />
-
+      <Route path="/interview-details/:sessionId" element={<InterviewDetails />} />
+      
       <Route path="/history" element={<History />} />
 
       <Route path="*" element={<NotFound />} />
